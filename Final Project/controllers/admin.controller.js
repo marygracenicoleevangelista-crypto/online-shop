@@ -1,48 +1,33 @@
-const Product = require("../models/product");
-const Order = require("../models/order");
+const Product = require("../models/product.model");
+const Order = require("../models/order.model");
 
-// Add product
-exports.addProduct = async (req, res) => {
+exports.addProduct = async (req, res, next) => {
   try {
-    const { name, description, price, stock, category } = req.body;
-    const product = new Product({ name, description, price, stock, category });
-    await product.save();
-    res.status(201).json(product);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+    const p = new Product(req.body);
+    const newP = await p.save();
+    res.status(201).json({ success: true, data: newP, message: "Product created (admin)" });
+  } catch (err) { next(err); }
 };
 
-// Edit product
-exports.editProduct = async (req, res) => {
+exports.editProduct = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const updates = req.body;
-    const product = await Product.findByIdAndUpdate(id, updates, { new: true });
-    if (!product) return res.status(404).json({ message: "Product not found" });
-    res.json(product);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!updated) return res.status(404).json({ success: false, data: null, message: "Product not found" });
+    res.json({ success: true, data: updated, message: "Product updated" });
+  } catch (err) { next(err); }
 };
 
-// Delete product
-exports.deleteProduct = async (req, res) => {
+exports.deleteProduct = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    await Product.findByIdAndDelete(id);
-    res.json({ message: "Product deleted" });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+    const del = await Product.findByIdAndDelete(req.params.id);
+    if (!del) return res.status(404).json({ success: false, data: null, message: "Product not found" });
+    res.json({ success: true, data: null, message: "Product deleted" });
+  } catch (err) { next(err); }
 };
 
-// View all orders
-exports.viewAllOrders = async (req, res) => {
+exports.viewAllOrders = async (req, res, next) => {
   try {
     const orders = await Order.find().populate("items.productId").populate("userId");
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.json({ success: true, data: orders, message: "All orders" });
+  } catch (err) { next(err); }
 };
