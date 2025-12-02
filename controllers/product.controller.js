@@ -1,84 +1,69 @@
 const Product = require("../models/product.model");
-const User = require("../models/user.model");
 
-// GET ALL PRODUCTS
-const getProducts = async (req, res) => {
+// GET all products
+exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find().lean();
+    const products = await Product.find();
     res.json({ success: true, data: products });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+  } catch (error) {
+    next(error);
   }
 };
 
-// GET SINGLE PRODUCT
-const getProduct = async (req, res) => {
+// GET single product
+exports.getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate("ratings.user", "name email");
+    const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
     res.json({ success: true, data: product });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+  } catch (error) {
+    next(error);
   }
 };
 
-// ADD PRODUCT
-const addProduct = async (req, res) => {
+// CREATE product
+exports.addProduct = async (req, res, next) => {
   try {
-    const product = new Product(req.body);
-    const newProduct = await product.save();
-    res.status(201).json({ success: true, data: newProduct });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    const product = await Product.create(req.body);
+    res.status(201).json({ success: true, data: product });
+  } catch (error) {
+    next(error);
   }
 };
 
-// UPDATE PRODUCT
-const updateProduct = async (req, res) => {
+// UPDATE product
+exports.updateProduct = async (req, res, next) => {
   try {
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ success: false, message: "Product not found" });
-    res.json({ success: true, data: updated });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
-  }
-};
-
-// DELETE PRODUCT
-const deleteProduct = async (req, res) => {
-  try {
-    const deleted = await Product.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ success: false, message: "Product not found" });
-    res.json({ success: true, message: "Product deleted" });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-// RATE PRODUCT
-const rateProduct = async (req, res) => {
-  try {
-    const { rating, comment } = req.body;
-    const productId = req.params.id;
-
-    const product = await Product.findById(productId);
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
-
-    const user = await User.findById(req.user.id);
-    const alreadyBought = user.purchasedProducts.some(p => p.toString() === productId);
-    if (!alreadyBought) return res.status(403).json({ success: false, message: "You can only rate products you purchased" });
-
-    const existing = product.ratings.find(r => r.user.toString() === req.user.id);
-    if (existing) return res.status(400).json({ success: false, message: "You already rated this product" });
-
-    product.ratings.push({ user: req.user.id, rating, comment });
-    product.updateAverageRating();
-    await product.save();
-
-    res.json({ success: true, message: "Rating submitted successfully", data: product });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.json({ success: true, data: product });
+  } catch (error) {
+    next(error);
   }
 };
 
-module.exports = { getProducts, getProduct, addProduct, updateProduct, deleteProduct, rateProduct };
+// DELETE product
+exports.deleteProduct = async (req, res, next) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    res.json({ success: true, message: "Product deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// RATE product
+exports.rateProduct = async (req, res, next) => {
+  try {
+    const { rating } = req.body;
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    product.ratings = product.ratings || [];
+    product.ratings.push(rating);
+    await product.save();
+    res.json({ success: true, data: product });
+  } catch (error) {
+    next(error);
+  }
+};
