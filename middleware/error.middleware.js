@@ -1,4 +1,3 @@
-// centralized error handler
 module.exports = (err, req, res, next) => {
   console.error(err.stack || err.message);
   const status = err.status || 500;

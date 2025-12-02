@@ -1,84 +1,51 @@
-// order.controller.js
 const Order = require("../models/order.model");
+const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
 
-// GET orders
-exports.getOrders = async (req, res, next) => {
+exports.getOrders = async (req, res) => {
   try {
-    // Admin can view all orders
-    if (req.user && req.user.role === "admin") {
-      const orders = await Order.find()
-        .populate("items.productId")
-        .populate("userId");
-      return res.json({ success: true, data: orders, message: "Orders fetched" });
-    }
-
-    // Regular user: only their orders
-    const userId = req.user ? req.user._id : req.query.userId;
-    if (!userId) return res.status(400).json({ success: false, data: null, message: "userId required" });
-
-    const orders = await Order.find({ userId }).populate("items.productId");
-    res.json({ success: true, data: orders, message: "Orders fetched" });
+    let orders;
+    if (req.user.role === "admin") orders = await Order.find().populate("items.product").populate("user");
+    else orders = await Order.find({ user: req.user.id }).populate("items.product");
+    res.json({ success: true, data: orders });
   } catch (err) {
-    next(err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// POST place an order
-exports.placeOrder = async (req, res, next) => {
+exports.placeOrder = async (req, res) => {
   try {
-    const userId = req.user ? req.user._id : req.body.userId;
     const { items } = req.body;
+    if (!items || items.length === 0) return res.status(400).json({ success: false, message: "No items provided" });
 
-    if (!userId || !items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ success: false, data: null, message: "userId and items required" });
-    }
-
-    // calculate total and validate stock
     let total = 0;
-    for (const it of items) {
-      const product = await Product.findById(it.productId);
-      if (!product) return res.status(400).json({ success: false, data: null, message: `Product ${it.productId} not found` });
-      if (product.stock < it.quantity) return res.status(400).json({ success: false, data: null, message: `Insufficient stock for ${product.name}` });
-      total += product.price * it.quantity;
+    for (const i of items) {
+      const prod = await Product.findById(i.productId);
+      if (!prod) return res.status(404).json({ success: false, message: "Product not found" });
+      total += prod.price * i.quantity;
     }
 
-    // reduce stock
-    for (const it of items) {
-      await Product.findByIdAndUpdate(it.productId, { $inc: { stock: -it.quantity } });
-    }
-
-    const order = new Order({ userId, items, total });
+    const order = new Order({ user: req.user.id, items: items.map(i => ({ product: i.productId, quantity: i.quantity })), total });
     await order.save();
-    const populated = await Order.findById(order._id).populate("items.productId").populate("userId");
 
-    res.status(201).json({ success: true, data: populated, message: "Order placed" });
+    // Clear user cart
+    await Cart.findOneAndDelete({ user: req.user.id });
+
+    res.status(201).json({ success: true, data: order });
   } catch (err) {
-    next(err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// DELETE cancel an order
-exports.cancelOrder = async (req, res, next) => {
+exports.cancelOrder = async (req, res) => {
   try {
-    const { orderId } = req.params;
-
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(req.params.orderId);
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (req.user.role !== "admin" && order.user.toString() !== req.user.id) return res.status(403).json({ success: false, message: "Not authorized" });
 
-    // Only admin or order owner can cancel
-    if (req.user.role !== "admin" && order.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "Not authorized to cancel this order" });
-    }
-
-    // restore stock
-    for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.productId, { $inc: { stock: item.quantity } });
-    }
-
-    await Order.findByIdAndDelete(orderId);
+    await order.deleteOne();
     res.json({ success: true, message: "Order cancelled" });
   } catch (err) {
-    next(err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
