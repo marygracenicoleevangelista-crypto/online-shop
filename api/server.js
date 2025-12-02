@@ -6,7 +6,7 @@ const morgan = require("morgan");
 require("dotenv").config();
 
 const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./swagger");
+const swaggerSpec = require("../swagger");
 
 const app = express();
 
@@ -17,11 +17,11 @@ app.use(helmet());
 app.use(morgan("dev"));
 
 // Routes
-app.use("/api/products", require("./routes/product.routes"));
-app.use("/api/users", require("./routes/user.routes"));
-app.use("/api/cart", require("./routes/cart.routes"));
-app.use("/api/orders", require("./routes/order.routes"));
-app.use("/api/admin", require("./routes/admin.routes"));
+app.use("/api/products", require("../routes/product.routes"));
+app.use("/api/users", require("../routes/user.routes"));
+app.use("/api/cart", require("../routes/cart.routes"));
+app.use("/api/orders", require("../routes/order.routes"));
+app.use("/api/admin", require("../routes/admin.routes"));
 
 // Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -37,7 +37,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error("MongoDB connection error:", err));
 
 // Global error handler
-const errorHandler = require("./middleware/error.middleware");
+const errorHandler = require("../middleware/error.middleware");
 app.use(errorHandler);
 
 module.exports = app;
