@@ -74,7 +74,7 @@ exports.cancelOrder = async (req, res, next) => {
     const order = await Order.findById(req.params.orderId);
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
     if (!req.user.isAdmin && order.userId.toString() !== req.user.id) return res.status(403).json({ success: false, message: "Not authorized" });
-    order.status = "Cancelled";
+    order.status = "cancelled";
     await order.save();
     res.json({ success: true, data: order });
   } catch (error) {
