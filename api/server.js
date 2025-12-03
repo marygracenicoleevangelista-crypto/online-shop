@@ -14,19 +14,41 @@ const app = express();
 mongoose.set("strictQuery", false);
 
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) {
-    return; 
-  }
   try {
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is missing");
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      console.log("✅ MongoDB already connected.");
+      return;
+    }
+
+    if (mongoose.connection.readyState === 2) {
+      console.log("⏳ MongoDB is connecting...");
+      await new Promise(resolve => {
+        const check = setInterval(() => {
+          if (mongoose.connection.readyState === 1) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 500);
+      });
+      return;
+    }
+
+    console.log("🔌 Attempting new MongoDB connection...");
+    
+    // ITO ANG FIX: Tinanggal na natin ang useNewUrlParser at useUnifiedTopology
     await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, 
-      socketTimeoutMS: 45000,
+      dbName: "online-shop",
+      bufferCommands: false, // Ito ang kailangan sa Vercel para di mag-timeout
     });
-    console.log("MongoDB Connected");
+
+    console.log("✅ MongoDB Connected Successfully!");
   } catch (err) {
-    console.error("MongoDB Connection Error:", err);
+    console.error("❌ MongoDB Connection FAILED:", err.message);
+    throw err;
   }
 };
 
