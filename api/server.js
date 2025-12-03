@@ -35,15 +35,21 @@ app.use("/api/admin", require("../routes/admin.routes"));
 // Swagger
 // api/server.js
 
-const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui.min.css";
 
 app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, {
     customCssUrl: CSS_URL,
-    customCss:
-      ".swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }",
+    customSiteTitle: "Online Shop API Docs",
+    customCss: `
+      .swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }
+      .swagger-ui .scheme-container { display: none; } 
+    `, 
+    swaggerOptions: {
+      persistAuthorization: true, 
+    }
   })
 );
 

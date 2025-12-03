@@ -6,10 +6,10 @@ const swaggerSpec = {
     version: "1.0.0",
     description: "Full API for Online Shop"
   },
-  servers: [
+servers: [
     {
-      url: "https://online-shop-deployment-qlux324uy-marygracenicoles-projects.vercel.app",
-      description: "Production Server (Vercel)"
+      url: "/", 
+      description: "Current Server (Vercel)"
     },
     {
       url: "http://localhost:3000",
