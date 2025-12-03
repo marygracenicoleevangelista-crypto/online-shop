@@ -39,10 +39,10 @@ const connectDB = async () => {
 
     console.log("🔌 Attempting new MongoDB connection...");
     
-    // ITO ANG FIX: Tinanggal na natin ang useNewUrlParser at useUnifiedTopology
+
     await mongoose.connect(process.env.MONGO_URI, {
       dbName: "online-shop",
-      bufferCommands: false, // Ito ang kailangan sa Vercel para di mag-timeout
+      bufferCommands: false, 
     });
 
     console.log("✅ MongoDB Connected Successfully!");
@@ -85,9 +85,9 @@ app.use(
   swaggerUi.setup(swaggerSpec, {
     customCssUrl: CSS_URL,
     customSiteTitle: "Online Shop API Docs",
+
     customCss: `
       .swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }
-      .swagger-ui .scheme-container { display: none; } 
     `,
     swaggerOptions: { persistAuthorization: true }
   })
