@@ -16,7 +16,7 @@ servers: [
       description: "Local Development"
     }
   ],
-  components: {
+    components: {
     securitySchemes: {
       bearerAuth: {
         type: "http",
@@ -24,6 +24,7 @@ servers: [
         bearerFormat: "JWT"
       }
     },
+    // Schemas
     schemas: {
       Product: {
         type: "object",
@@ -83,7 +84,9 @@ servers: [
       }
     }
   },
-  security: [{ bearerAuth: [] }],
+  //Global Security Requirement
+  security: [{ bearerAuth: [] }], 
+  
   paths: {
     "/api/users/register": {
       post: {
