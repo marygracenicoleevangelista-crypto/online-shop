@@ -4,10 +4,17 @@ const swaggerSpec = {
   info: {
     title: "Online Shop API",
     version: "1.0.0",
-    description: "Full API for Online Shop (Products, Cart, Orders, Users) with JWT authentication"
+    description: "Full API for Online Shop"
   },
   servers: [
-    { url: "http://localhost:3000" }
+    {
+      url: "https://online-shop-deployment-qlux324uy-marygracenicoles-projects.vercel.app",
+      description: "Production Server (Vercel)"
+    },
+    {
+      url: "http://localhost:3000",
+      description: "Local Development"
+    }
   ],
   components: {
     securitySchemes: {
