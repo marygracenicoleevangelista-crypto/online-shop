@@ -1,4 +1,3 @@
-// middleware/auth.middleware.js
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
@@ -14,23 +13,27 @@ const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       req.user = await User.findById(decoded.id).select("-password");
+      if (!req.user) {
+         return res.status(401).json({ success: false, message: "User not found" });
+      }
       next();
     } catch (error) {
       console.error(error);
-      return res.status(401).json({ success: false, message: "Not authorized" });
+      return res.status(401).json({ success: false, message: "Not authorized, token failed" });
     }
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "No token provided" });
+    return res.status(401).json({ success: false, message: "Not authorized, no token" });
   }
 };
 
 const adminOnly = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
+  // Check both 'role' (string) and 'isAdmin' (boolean) 
+  if (req.user && (req.user.role === "admin" || req.user.isAdmin === true)) {
     next();
   } else {
-    return res.status(403).json({ success: false, message: "Admin only" });
+    return res.status(403).json({ success: false, message: "Admin access required" });
   }
 };
 
