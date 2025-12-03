@@ -10,6 +10,6 @@ router.get("/", protect, controller.getCart);
 router.post("/", protect, controller.addToCart);
 
 // REMOVE item
-router.delete("/:itemId", protect, controller.removeFromCart);
+router.delete("/:productId", protect, controller.deleteCartItem);
 
 module.exports = router;

@@ -4,8 +4,8 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js",
-    "dev": "NODE_ENV=development node server.js"
+    "start": "node api/server.js",
+    "dev": "NODE_ENV=development node api/server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -27,13 +27,28 @@ exports.addToCart = async (req, res, next) => {
 };
 
 // REMOVE from cart
-exports.removeFromCart = async (req, res, next) => {
+exports.deleteCartItem = async (req, res, next) => {
   try {
-    const cart = await Cart.findOne({ userId: req.user.id });
-    if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
-    cart.items = cart.items.filter(item => item._id.toString() !== req.params.itemId);
-    await cart.save();
-    res.json({ success: true, data: cart.items });
+    const userId = req.user.id;
+    const productId = req.params.productId;
+
+    // Check if productId is valid
+    if (!productId) {
+      return res.status(400).json({ success: false, message: "Product ID required" });
+    }
+
+    // Use MongoDB $pull operator 
+    const cart = await Cart.findOneAndUpdate(
+      { userId: userId },
+      { $pull: { items: { productId: productId } } },
+      { new: true } // Return the updated cart
+    );
+
+    if (!cart) {
+      return res.status(404).json({ success: false, message: "Cart not found" });
+    }
+
+    res.json({ success: true, message: "Item removed", data: cart.items });
   } catch (error) {
     next(error);
   }

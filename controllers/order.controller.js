@@ -16,11 +16,53 @@ exports.getOrders = async (req, res, next) => {
 // PLACE order
 exports.placeOrder = async (req, res, next) => {
   try {
-    const { items } = req.body;
-    const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const order = await Order.create({ userId: req.user.id, items, total, status: "Pending" });
-    await Cart.findOneAndUpdate({ userId: req.user.id }, { items: [] }); // clear cart
-    res.status(201).json({ success: true, data: order });
+    const { address, paymentMethod } = req.body; // Address is required
+
+    if (!address) {
+      return res.status(400).json({ success: false, message: "Shipping address is required" });
+    }
+
+    // Get user's cart and populate product details (name, price)
+    const cart = await Cart.findOne({ userId: req.user.id }).populate("items.productId");
+
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
+    // Transform Cart Items to Order Items
+    let orderTotal = 0;
+    const orderItems = [];
+
+    for (const item of cart.items) {
+      // Skip items where product might have been deleted from DB
+      if (!item.productId) continue; 
+
+      const subtotal = item.productId.price * item.quantity;
+      orderTotal += subtotal;
+
+      orderItems.push({
+        productId: item.productId._id,
+        name: item.productId.name, // Assumes Product model has 'name'
+        price: item.productId.price, // Assumes Product model has 'price'
+        quantity: item.quantity,
+        subtotal: subtotal
+      });
+    }
+
+    // Create the Order
+    const order = await Order.create({
+      userId: req.user.id,
+      items: orderItems,
+      total: orderTotal,
+      address: address,
+      paymentMethod: paymentMethod || "cod", // default to cod if not provided
+      status: "pending" // lowercase "pending" matches your model enum
+    });
+
+    // Clear the Cart
+    await Cart.findOneAndUpdate({ userId: req.user.id }, { items: [] });
+
+    res.status(201).json({ success: true, message: "Order placed successfully", data: order });
   } catch (error) {
     next(error);
   }
