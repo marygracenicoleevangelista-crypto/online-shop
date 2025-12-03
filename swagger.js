@@ -8,7 +8,7 @@ const swaggerSpec = {
   servers: [
     {
       url: "https://online-shop-deployment.vercel.app", 
-      description: "Vercel Server (Auto-detect)"
+      description: "Vercel"
     },
     {
       url: "http://localhost:3000",
