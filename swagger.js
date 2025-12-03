@@ -7,7 +7,7 @@ const swaggerSpec = {
   },
   servers: [
     {
-      url: "https://online-shop-deployment.vercel.app", 
+      url: "https://online-shop-deployment.vercel.app/", 
       description: "Vercel"
     },
     {
@@ -63,6 +63,7 @@ const swaggerSpec = {
           quantity: { type: "number" }
         }
       },
+      // UPDATED ORDER SCHEMA
       Order: {
         type: "object",
         properties: {
@@ -70,7 +71,9 @@ const swaggerSpec = {
           userId: { type: "string" },
           items: { type: "array", items: { $ref: "#/components/schemas/OrderItem" } },
           total: { type: "number" },
-          status: { type: "string", example: "Pending" }
+          status: { type: "string", example: "pending" },
+          address: { type: "string", example: "123 Street, Manila" },
+          paymentMethod: { type: "string", example: "cod" }
         }
       },
       AuthResponse: {
@@ -147,7 +150,6 @@ const swaggerSpec = {
         }
       }
     },
-    
     "/api/admin/products": {
       get: {
         tags: ["Admin Products"],
@@ -207,6 +209,7 @@ const swaggerSpec = {
         responses: { 200: { description: "Item removed" }, 404: { description: "Cart/item not found" } }
       }
     },
+    // UPDATED ORDERS ENDPOINT (Address & Payment Method)
     "/api/orders": {
       get: {
         tags: ["Orders"],
@@ -216,10 +219,28 @@ const swaggerSpec = {
       },
       post: {
         tags: ["Orders"],
-        summary: "Place a new order",
+        summary: "Place a new order (Items are taken from Cart automatically)",
         security: [{ bearerAuth: [] }],
-        requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { items: { type: "array", items: { $ref: "#/components/schemas/OrderItem" } } } }, example: { items: [{ productId: "64a1f2e8c1a2b3d4567e89f0", quantity: 2 }] } } } },
-        responses: { 201: { description: "Order placed" }, 400: { description: "Invalid input or stock issue" } }
+        requestBody: { 
+          required: true, 
+          content: { 
+            "application/json": { 
+              schema: { 
+                type: "object", 
+                required: ["address"],
+                properties: { 
+                  address: { type: "string" },
+                  paymentMethod: { type: "string", enum: ["cod", "gcash", "card"], default: "cod" } 
+                } 
+              }, 
+              example: { 
+                address: "123 Main Street, Manila", 
+                paymentMethod: "cod" 
+              } 
+            } 
+          } 
+        },
+        responses: { 201: { description: "Order placed" }, 400: { description: "Invalid input or empty cart" } }
       }
     },
     "/api/orders/{orderId}": {
