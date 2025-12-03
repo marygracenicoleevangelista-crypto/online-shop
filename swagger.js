@@ -1,4 +1,3 @@
-// swagger.js
 const swaggerSpec = {
   openapi: "3.0.0",
   info: {
@@ -6,17 +5,17 @@ const swaggerSpec = {
     version: "1.0.0",
     description: "Full API for Online Shop"
   },
-servers: [
+  servers: [
     {
       url: "/", 
-      description: "Current Server (Vercel)"
+      description: "Default Server (Auto-detect)"
     },
     {
       url: "http://localhost:3000",
       description: "Local Development"
     }
   ],
-    components: {
+  components: {
     securitySchemes: {
       bearerAuth: {
         type: "http",
@@ -24,7 +23,6 @@ servers: [
         bearerFormat: "JWT"
       }
     },
-    // Schemas
     schemas: {
       Product: {
         type: "object",
@@ -84,7 +82,6 @@ servers: [
       }
     }
   },
-  //Global Security Requirement
   security: [{ bearerAuth: [] }], 
   
   paths: {
@@ -240,7 +237,7 @@ servers: [
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { items: { type: "array", items: { $ref: "#/components/schemas/OrderItem" } } } }, example: { items: [{ productId: "64a1f2e8c1a2b3d4567e89f0", quantity: 2 }] } } } },
         responses: { 201: { description: "Order placed" }, 400: { description: "Invalid input or stock issue" } }
-      }
+      },
     },
     "/api/orders/{orderId}": {
       delete: {
