@@ -52,21 +52,3 @@ exports.deleteProduct = async (req, res, next) => {
     next(error);
   }
 };
-
-// RATE product
-exports.rateProduct = async (req, res, next) => {
-  try {
-    const { rating } = req.body;
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
-    
-    // Safety check
-    if (!product.ratings) product.ratings = [];
-    
-    product.ratings.push(rating);
-    await product.save();
-    res.json({ success: true, data: product });
-  } catch (error) {
-    next(error);
-  }
-};

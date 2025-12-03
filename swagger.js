@@ -8,7 +8,7 @@ const swaggerSpec = {
   servers: [
     {
       url: "/", 
-      description: "Default Server (Auto-detect)"
+      description: "Vercel Server (Auto-detect)"
     },
     {
       url: "http://localhost:3000",
@@ -147,24 +147,7 @@ const swaggerSpec = {
         }
       }
     },
-    "/api/products/{id}/rate": {
-      post: {
-        tags: ["Products"],
-        summary: "Rate a product (user only)",
-        security: [{ bearerAuth: [] }],
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-        requestBody: {
-          required: true,
-          content: { "application/json": { schema: { type: "object", properties: { rating: { type: "number" }, comment: { type: "string" } } }, example: { rating: 5, comment: "Amazing!" } } }
-        },
-        responses: {
-          200: { description: "Rating submitted successfully" },
-          400: { description: "Already rated" },
-          403: { description: "Cannot rate without purchase" },
-          404: { description: "Product not found" }
-        }
-      }
-    },
+    
     "/api/admin/products": {
       get: {
         tags: ["Admin Products"],
@@ -237,7 +220,7 @@ const swaggerSpec = {
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { items: { type: "array", items: { $ref: "#/components/schemas/OrderItem" } } } }, example: { items: [{ productId: "64a1f2e8c1a2b3d4567e89f0", quantity: 2 }] } } } },
         responses: { 201: { description: "Order placed" }, 400: { description: "Invalid input or stock issue" } }
-      },
+      }
     },
     "/api/orders/{orderId}": {
       delete: {
